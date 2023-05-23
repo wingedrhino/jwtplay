@@ -12,4 +12,5 @@ func Init(r *gin.RouterGroup) {
 	r.POST("/check-token-manual", CheckTokenManual)
 	r.POST("/set-secret", SetSecret)
 	r.POST("/decode-b64", DecodeB64)
+	r.POST("/check-token-jwks", CheckTokenJWKS)
 }

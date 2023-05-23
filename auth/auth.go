@@ -6,49 +6,62 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"strings"
-	"sync"
+
+	"github.com/mahtuag/jwtplay/secrets"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/pkg/errors"
 )
 
-var lock = &sync.RWMutex{}
-var secret []byte
+// TokenGetter is a function that accepts a jwt.Claims object and returns a signed
+// token as a string and an error if any
+type TokenGetter func(jwt.Claims) (string, error)
 
-func readSecret() []byte {
-	lock.RLock()
-	secretCopy := secret
-	lock.RUnlock()
-	return secretCopy
+// GetToken accepts a claims object and signs it with the algorithm provided via
+// the alg field.
+func GetToken(claims jwt.Claims, alg string) (string, error) {
+	switch alg {
+	case "RS256":
+		return GetTokenRS256(claims)
+	case "HS256":
+		return GetTokenHS256(claims)
+	default:
+		return "", errors.Errorf("Invalid algorithm '%s'. Valid values: 'RS256', 'HS256", alg)
+	}
 }
 
-// SetSecret is used to set secret used to sign tokens; this trims any spaces
-// or newlines around the token string.
-func SetSecret(input string) {
-	// Remove extra spaces added during parsing if input came from an unreliable
-	// source like a text file that has an extra newline added accidentally.
-	secretString := strings.Trim(input, " \n\t\r")
-	lock.Lock()
-	secret = []byte(secretString)
-	lock.Unlock()
-}
-
-// GetToken returns a JWT token created from the provided claims object
-func GetToken(claims jwt.Claims) (string, error) {
+// GetTokenHS256 returns a JWT token created from the provided claims object
+func GetTokenHS256(claims jwt.Claims) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString(readSecret())
-	err = errors.Wrapf(err, "error: SigningMethodHS256: unable to sign claims: %v", claims)
+	tokenString, err := token.SignedString(secrets.GetSym())
+	err = errors.Wrapf(err, "error signing claims via HS256: %v", claims)
 	return tokenString, err
 }
 
-// ParseToken parses a JWT token, checks it for validity and returns a
-// *jwt.Token object
-func ParseToken(tokenString string) (*jwt.Token, error) {
+// GetTokenRS256 returns a JWT token created from the provided claims object
+func GetTokenRS256(claims jwt.Claims) (string, error) {
+	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
+	tokenString, err := token.SignedString(secrets.GetAsymPub())
+	err = errors.Wrapf(err, "error signing claims via RS256: %v", claims)
+	return tokenString, err
+}
+
+// ValidateToken parses a JWT token, checks it for validity and returns a
+// `*jwt.Token` object
+func ValidateToken(tokenString string) (*jwt.Token, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+		switch token.Method.(type) {
+		case *jwt.SigningMethodHMAC:
+			return secrets.GetSym(), nil
+		case *jwt.SigningMethodRSA:
+			pubKey, err := jwt.ParseRSAPublicKeyFromPEM(secrets.GetAsymPub())
+			if err != nil {
+				return nil, errors.Wrap(err, "Unable to parse RSA pubkey from PEM")
+			}
+			return pubKey, nil
+		default:
 			return nil, errors.Errorf("Unexpected signing method: %v", token.Header["alg"])
 		}
-		return readSecret(), nil
 	})
 	return token, errors.Wrap(err, "error: invalid token")
 }
@@ -84,15 +97,16 @@ func getParts(tokenString string) (parts []string, err error) {
 	return
 }
 
-// VerifyManual manually verifies that a JWT token is valid and returns the
+// VerifyManualHS256 manually verifies that a JWT token is valid and returns the
 // body in a DummyJSONClaims object
-func VerifyManual(tokenString string) error {
+// This assumes that the token is a HS256 token
+func VerifyManualHS256(tokenString string) error {
 	parts, err := getParts(tokenString)
 	if err != nil {
 		return err
 	}
 	tokenToSign := parts[0] + "." + parts[1]
-	h := hmac.New(sha256.New, readSecret())
+	h := hmac.New(sha256.New, secrets.GetSym())
 	_, err = h.Write([]byte(tokenToSign))
 	if err != nil {
 		return errors.Wrap(err, "error writing data to HMAC function")

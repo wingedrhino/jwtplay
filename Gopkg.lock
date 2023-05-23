@@ -32,16 +32,16 @@
   revision = "1e59b77b52bf8e4b449a57e6f79f21226d571845"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/lestrrat/go-jwx"
+  packages = ["buffer","internal/emap","jwa","jwk"]
+  revision = "b0efd7d3a697d78d8a761ab1e7d8855edfbd0cf6"
+
+[[projects]]
   name = "github.com/mattn/go-isatty"
   packages = ["."]
   revision = "0360b2af4f38e8d38c7fce2a9f4e702702d73a39"
   version = "v0.0.3"
-
-[[projects]]
-  name = "github.com/pelletier/go-toml"
-  packages = ["."]
-  revision = "16398bac157da96aa88f98a2df640c7f32af1da2"
-  version = "v1.0.1"
 
 [[projects]]
   name = "github.com/pkg/errors"
@@ -59,7 +59,7 @@
   branch = "master"
   name = "github.com/ugorji/go"
   packages = ["codec"]
-  revision = "f57d8945648dbfe4c332cff9c50fb57548958e3f"
+  revision = "bcec826260ae3be35231f9fa66f8e936702e0db0"
 
 [[projects]]
   branch = "master"
@@ -88,6 +88,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "2979251a80cbd5b5d66d2d44508dd3cba15af5dc6f50e5fe96a9f42e8152e923"
+  inputs-digest = "55858cf681c63ce1cc9cca9d1c9360d28f2ff5e9ae869c3fe202f6b7a7f26489"
   solver-name = "gps-cdcl"
   solver-version = 1

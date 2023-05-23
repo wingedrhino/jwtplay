@@ -5,14 +5,16 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/mahtuag/jwtplay/auth"
+	"github.com/mahtuag/jwtplay/secrets"
 	"github.com/pkg/errors"
 )
 
 // SetSecret sets the secret used to sign the token
 func SetSecret(c *gin.Context) {
 	var i = struct {
-		Secret string `json:"secret" binding:"required"`
+		Symmetric  string `json:"symmetric" binding:"required"`
+		PrivateKey string `json:"private_key" binding:"required"`
+		PublicKey  string `json:"public_key" binding:"required"`
 	}{}
 	err := c.BindJSON(&i)
 	if err != nil {
@@ -20,6 +22,7 @@ func SetSecret(c *gin.Context) {
 			"error": fmt.Sprintf("%+v", errors.Wrap(err, "Unable to parse request body as JSON")),
 		})
 	}
-	auth.SetSecret(i.Secret)
+	secrets.SetSym(i.Symmetric)
+	secrets.SetAsym(i.PublicKey, i.PrivateKey)
 	c.JSON(http.StatusOK, i)
 }

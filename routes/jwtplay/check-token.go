@@ -10,18 +10,16 @@ import (
 )
 
 // CheckToken checks if a token is valid using the `github.com/dgrijalva/jwt-go`
-// package.
+// package. It also additionally decodes the claims section into plain JSON.
 func CheckToken(c *gin.Context) {
 	tokenString := c.Request.Header.Get("Authorization")
 	tokenString = strings.TrimPrefix(tokenString, "Bearer ")
-	token, err := auth.ParseToken(tokenString)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": fmt.Sprintf("%+v", err),
-		})
-	} else {
-		c.JSON(http.StatusOK, gin.H{
-			"token": token,
-		})
-	}
+	token, errValid := auth.ValidateToken(tokenString)
+	claims, errClaims := auth.ParseClaims(tokenString)
+	c.JSON(http.StatusOK, gin.H{
+		"token":        token,
+		"error_token":  fmt.Sprintf("%+v", errValid),
+		"claims":       claims,
+		"error_claims": fmt.Sprintf("%+v", errClaims),
+	})
 }

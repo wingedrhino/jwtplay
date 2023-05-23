@@ -1,4 +1,4 @@
-// Copyright (c) 2012-2015 Ugorji Nwoke. All rights reserved.
+// Copyright (c) 2012-2018 Ugorji Nwoke. All rights reserved.
 // Use of this source code is governed by a MIT license found in the LICENSE file.
 
 // +build ignore
@@ -91,8 +91,9 @@ func (h *noopDrv) EncodeArrayStart(length int)             { h.start(true) }
 func (h *noopDrv) EncodeMapStart(length int)               { h.start(false) }
 func (h *noopDrv) EncodeEnd()                              { h.end() }
 
-func (h *noopDrv) EncodeString(c charEncoding, v string)      {}
-func (h *noopDrv) EncodeSymbol(v string)                      {}
+func (h *noopDrv) EncodeString(c charEncoding, v string) {}
+
+// func (h *noopDrv) EncodeSymbol(v string)                      {}
 func (h *noopDrv) EncodeStringBytes(c charEncoding, v []byte) {}
 
 func (h *noopDrv) EncodeExt(rv interface{}, xtag uint64, ext Ext, e *Encoder) {}

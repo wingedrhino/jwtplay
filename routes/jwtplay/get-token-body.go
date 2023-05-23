@@ -9,7 +9,10 @@ import (
 )
 
 // GetTokenBody to obtain JWT token that's a signed version of request body
+// X-Alg header has the algorithm used
 func GetTokenBody(c *gin.Context) {
+	alg := c.Request.Header.Get("X-Alg")
+
 	claims := auth.SimpleClaims{}
 	err := claims.FromReader(c.Request.Body)
 	if err != nil {
@@ -18,7 +21,7 @@ func GetTokenBody(c *gin.Context) {
 		})
 		return
 	}
-	tokenString, err := auth.GetToken(claims)
+	tokenString, err := auth.GetToken(claims, alg)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": fmt.Sprintf("%+v", err),

@@ -14,6 +14,7 @@ import (
 func GetToken(c *gin.Context) {
 	var i = struct {
 		Email string `json:"email" binding:"required"`
+		Alg   string `json:"alg" binding:"required"`
 	}{}
 	err := c.BindJSON(&i)
 	if err != nil {
@@ -21,10 +22,11 @@ func GetToken(c *gin.Context) {
 			"error": fmt.Sprintf("%+v", errors.Wrap(err, "Unable to parse request body as JSON")),
 		})
 	}
-	tokenString, err := auth.GetToken(jwt.MapClaims{
+	claims := jwt.MapClaims{
 		"email":          i.Email,
 		"email_verified": true,
-	})
+	}
+	tokenString, err := auth.GetToken(claims, i.Alg)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": fmt.Sprintf("%+v", err),
