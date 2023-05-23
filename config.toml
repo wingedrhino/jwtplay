@@ -1,0 +1,11 @@
+# Application Configuration File
+
+[server]
+gin_mode = "debug"
+port = ":8080"
+
+[jwt]
+secret = "./authsecret"
+
+[logger]
+level = 5 # 0,1,2,3,4,5 => Panic, Fatal, Error, Warn, Info, Debug
